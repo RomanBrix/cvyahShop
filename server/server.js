@@ -4,7 +4,7 @@ const cors = require('cors');
 const { graphqlHTTP } = require('express-graphql');
 const sendSms = require('./telegram/bot');
 const schema = require('./graphql/schema');
-const e = require('express');
+const ConnectDb = require('./config/db')
 
 let passObj = {};
 
@@ -13,6 +13,8 @@ console.log(passObj);
 
 const app = express();
 app.use(express.json());
+//conect db 
+ConnectDb()
 
 app.use(cors());
 app.use('/graphql', graphqlHTTP({
@@ -26,6 +28,23 @@ app.get('/', (req, res)=>{
     res.send('hi')
 })
 
+
+
+
+
+
+
+
+
+
+
+
+
+/* 
+================
+Generate and send code to log in
+================
+*/
 app.post('/bot-log-in', (req,res)=>{
     const { chatId } = req.body;
     sendSms(req.body.chatId, (code)=>{
@@ -33,12 +52,11 @@ app.post('/bot-log-in', (req,res)=>{
             passObj[chatId] = {
                 code: code,
                 clear: setTimeout(()=>{
-                    passObj[chatId] = ''
+                    passObj[chatId] = {}
                     console.log('GO CLEAR')
                     console.log(passObj)
                 }, 25000)
             };
-            console.log(passObj[chatId])
             console.log(chatId)
             res.json(true);
         }else{
@@ -50,6 +68,11 @@ app.post('/bot-log-in', (req,res)=>{
 })
 
 
+/* 
+================
+check genereted code
+================
+*/
 
 app.post('/bot-check-pass', (req, res)=>{
     const { chatId, pass } = req.body;
@@ -57,13 +80,30 @@ app.post('/bot-check-pass', (req, res)=>{
     if(passObj[chatId].code === +pass){
 
         clearTimeout(passObj[chatId].clear);
-        passObj[chatId] = '';
+        passObj[chatId] = {};
         
         res.json(true)
     }else{
         res.json(false);
     }
 })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 app.listen(process.env.PORT, err=>{
    err ? console.log(err) :

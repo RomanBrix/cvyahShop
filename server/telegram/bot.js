@@ -1,7 +1,10 @@
 const TelegramBot = require('node-telegram-bot-api');
+const UserModel = require('../models/User');
+const TelegramModel = require('../models/Telegram');
+
 
 // replace the value below with the Telegram token you receive from @BotFather
-const token = '5414921297:AAEwT7_EiPVW20tfcUVavsCKiHJnRw6E3JA';
+const token = process.env.BOT_TOKEN;
 
 // Create a bot that uses 'polling' to fetch new updates
 const bot = new TelegramBot(token, {polling: true});
@@ -42,8 +45,35 @@ bot.onText(/\/hi/,(msg, match)=>{
     bot.sendMessage(msg.chat.id, "Send Contact!", option).then(() => {
         
         bot.once("contact",(msg)=>{
-            console.log(msg)
-            bot.sendMessage(msg.chat.id,'thnx')    
+            // console.log(msg.contact);
+            UserModel.findOne({phone: msg.contact.phone_number}, (err, res)=>{
+                // console.log(res)
+                TelegramModel.findOne({phone: res.phone}, (err, tg)=>{
+                    // console.log(tg)
+                    if(!tg){
+                        //go reg
+                        const newTg = new TelegramModel({
+                            chatId: msg.chat.id,
+                            phone: res.phone
+                        });
+                        newTg.save((err)=>{
+                            if(err) return bot.sendMessage(msg.chat.id,'smth go wrong')
+
+                            bot.sendMessage(msg.chat.id,'Ok, now you tg registred')
+                        })
+                    }else{
+                        bot.sendMessage(msg.chat.id,'You registred! if you`ve some troubles contact admin')
+                    }
+                })
+                if(res){
+                    // 
+                }else{
+                    bot.sendMessage(msg.chat.id,'First you need to register on site')  
+                }
+            });
+            
+            
+              
         })
     })
 })
