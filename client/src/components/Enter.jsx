@@ -1,6 +1,7 @@
 import { gql, useQuery, useLazyQuery } from '@apollo/client';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useStore } from 'react-redux';
 
 
 
@@ -27,13 +28,14 @@ const Enter = () => {
     const [goPass, setGoPass] = useState(false);
     const [logged, setLogged] = useState(false);
     
-    
+    const store = useStore()
     const [getCheck, { data }] = useLazyQuery(CHECK_TG_REG);
-
+    // console.log(store.dispatch());
+    console.log(store.getState());
+    // console.log(store);
     useEffect(()=>{
             
         if(data?.telegram){
-            console.log(data)
             if(data.telegram.user.role === 'admin'){
                 setChatId(data.telegram.telegram_id);
             }
@@ -97,6 +99,8 @@ const Enter = () => {
         .then(({data}) => {
             console.log(data)
             if(data){
+                window.localStorage.setItem('salt', 'asdasdasd')
+                window.localStorage.setItem('phone', values.phone)
                 setLogged(true);
             }else{
                 alert('PIWOV NAHYI')
